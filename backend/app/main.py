@@ -5,6 +5,8 @@ from app.routers.transactions import router as transactions_router
 
 app = FastAPI()
 
+Base.metadata.create_all(bind=engine)
+
 @app.get("/")
 def root():
     return {"message": "Finance Tracker API"}
@@ -16,4 +18,3 @@ def health():
 
 app.include_router(transactions_router, prefix="/transactions", tags=["Transactions"])
 
-Base.metadata.create_all(bind=engine)
