@@ -34,15 +34,50 @@ def get_transactions(
     return query.order_by(Transaction.date.desc()).all()
   
 @router.get("/summary", response_model=SummaryTransaction)
-def summary_transactions(db: Session = Depends(get_db),):
-      total_income = ( db.query( func.sum(Transaction.amount )).filter(Transaction.type == "income").scalar() or 0)
-      total_expense = ( db.query( func.sum(Transaction.amount )).filter(Transaction.type == "expense").scalar()or 0)
-      balance = total_income - total_expense
-      return {
-       "total_income": total_income ,
-       "total_expense": total_expense,
-       "balance": balance
-       }
+def summary_transactions(
+    db: Session = Depends(get_db),
+    type: str | None = None,
+    category: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+):
+    query = db.query(Transaction)
+
+    if type:
+        query = query.filter(Transaction.type == type)
+
+    if category:
+        query = query.filter(Transaction.category == category)
+
+    if date_from:
+        query = query.filter(Transaction.date >= date_from)
+
+    if date_to:
+        query = query.filter(Transaction.date <= date_to)
+
+    total_income = (
+        query
+        .filter(Transaction.type == "income")
+        .with_entities(func.sum(Transaction.amount))
+        .scalar()
+        or 0
+    )
+
+    total_expense = (
+        query
+        .filter(Transaction.type == "expense")
+        .with_entities(func.sum(Transaction.amount))
+        .scalar()
+        or 0
+    )
+
+    balance = total_income - total_expense
+
+    return {
+        "total_income": total_income,
+        "total_expense": total_expense,
+        "balance": balance
+    }
      
 @router.get("/categories", response_model=list[CategoryTransaction])
 def category_summary(
