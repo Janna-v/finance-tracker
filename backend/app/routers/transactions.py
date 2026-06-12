@@ -94,7 +94,37 @@ def category_summary(
 
     return dict_container
 
-    
+from sqlalchemy import func
+
+@router.get("/monthly")
+def monthly_report(db: Session = Depends(get_db)):
+
+    query = (
+        db.query(
+            func.strftime("%Y-%m", Transaction.date).label("month"),
+            Transaction.type,
+            func.sum(Transaction.amount).label("total")
+        )
+        .group_by(
+            func.strftime("%Y-%m", Transaction.date),
+            Transaction.type
+        )
+        .order_by(func.strftime("%Y-%m", Transaction.date))
+        .all()
+    )   
+    result = {}
+
+    for month, type_, total in query:
+        if month not in result:
+         result[month] = {
+            "month": month,
+            "income": 0,
+            "expense": 0
+         }
+
+    result[month][type_] = total
+ 
+    return list(result.values())
 
 
 @router.post("/", response_model=TransactionResponse)
