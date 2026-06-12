@@ -1,7 +1,8 @@
 from datetime import date
 
 from fastapi import APIRouter, HTTPException
-from app.schemas.transaction import TransactionCreate, TransactionResponse, TransactionUpdate
+from sqlalchemy import func
+from app.schemas.transaction import CategoryTransaction, SummaryTransaction, TransactionCreate, TransactionResponse, TransactionUpdate
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -32,6 +33,33 @@ def get_transactions(
 
     return query.order_by(Transaction.date.desc()).all()
   
+@router.get("/summary", response_model=SummaryTransaction)
+def summary_transactions(db: Session = Depends(get_db),):
+      total_income = ( db.query( func.sum(Transaction.amount )).filter(Transaction.type == "income").scalar() or 0)
+      total_expense = ( db.query( func.sum(Transaction.amount )).filter(Transaction.type == "expense").scalar()or 0)
+      balance = total_income - total_expense
+      return {
+       "total_income": total_income ,
+       "total_expense": total_expense,
+       "balance": balance
+       }
+     
+@router.get("/categories", response_model=list[CategoryTransaction])
+def category_summary(
+    db: Session = Depends(get_db)
+):
+    query= (db.query(Transaction.category , func.sum(Transaction.amount))).group_by(Transaction.category).all()
+    dict_container = []
+    for item in query:
+         dict_item = {
+            "category": item[0],
+            "total": item[1]     
+         }
+         dict_container.append(dict_item)
+
+    return dict_container
+
+    
 
 
 @router.post("/", response_model=TransactionResponse)

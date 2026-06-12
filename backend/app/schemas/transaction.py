@@ -23,3 +23,12 @@ class TransactionUpdate(BaseModel):
     category: str | None = None
     description: str | None = None
     date: Optional[date] = None
+
+class SummaryTransaction(BaseModel):
+    total_income: float 
+    total_expense: float 
+    balance:float  
+
+class CategoryTransaction(BaseModel):
+    category : str
+    total : float
