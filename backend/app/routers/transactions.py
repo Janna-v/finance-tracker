@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, HTTPException
 from app.schemas.transaction import TransactionCreate, TransactionResponse, TransactionUpdate
 from fastapi import Depends
@@ -7,12 +9,30 @@ from app.models.transaction import Transaction
 
 router = APIRouter()
 
-
 @router.get("/", response_model=list[TransactionResponse])
-def get_transactions(type: str | None = None, db:Session = Depends(get_db)):
-    return db.query(Transaction).order_by(Transaction.date.desc()).all()
+def get_transactions(
+    type: str  | None = None,
+    category: str | None = None,
+    date_from : date | None = None ,
+    date_to : date | None = None,
+    db:Session = Depends(get_db)
+    ):
+    query = db.query(Transaction)
+    if type  : 
+         query = query.filter(Transaction.type == type)
+
+    if category: 
+         query = query.filter(Transaction.category == category)     
+
+    if date_from : 
+         query = query.filter(Transaction.date >= date_from)
+
+    if date_to: 
+         query = query.filter(Transaction.date <= date_to)     
+
+    return query.order_by(Transaction.date.desc()).all()
   
-    
+
 
 @router.post("/", response_model=TransactionResponse)
 def create_transactions( transaction: TransactionCreate, db: Session = Depends(get_db)):
