@@ -2,12 +2,12 @@ from datetime import date
 
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import func
-from app.schemas.transaction import CategoryTransaction, SummaryTransaction, TransactionCreate, TransactionResponse, TransactionUpdate
+from app.schemas.transaction import CategoryTransaction, MonthlyReportItem, SummaryTransaction, TransactionCreate, TransactionResponse, TransactionUpdate
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.transaction import Transaction
-
+from sqlalchemy import func
 router = APIRouter()
 
 @router.get("/", response_model=list[TransactionResponse])
@@ -94,9 +94,7 @@ def category_summary(
 
     return dict_container
 
-from sqlalchemy import func
-
-@router.get("/monthly")
+@router.get("/monthly", response_model=list[MonthlyReportItem])
 def monthly_report(db: Session = Depends(get_db)):
 
     query = (
@@ -122,10 +120,9 @@ def monthly_report(db: Session = Depends(get_db)):
             "expense": 0
          }
 
-    result[month][type_] = total
+        result[month][type_] = total
  
     return list(result.values())
-
 
 @router.post("/", response_model=TransactionResponse)
 def create_transactions( transaction: TransactionCreate, db: Session = Depends(get_db)):
@@ -142,6 +139,37 @@ def create_transactions( transaction: TransactionCreate, db: Session = Depends(g
 
     return db_transaction
 
+@router.get("/dashboard")
+def get_dashboard(db: Session = Depends(get_db)):
+
+    total_income = db.query(func.sum(Transaction.amount)).filter(Transaction.type == "income").scalar() or 0
+
+    total_expense = db.query(func.sum(Transaction.amount)).filter(Transaction.type == "expense").scalar() or 0
+
+    balance = total_income - total_expense
+
+    top_categories_query = (
+        db.query(
+            Transaction.category,
+            func.sum(Transaction.amount).label("total")
+        )
+        .group_by(Transaction.category)
+        .order_by(func.sum(Transaction.amount).desc())
+        .limit(3)
+        .all()
+    )
+
+    top_categories = [
+        {"category": c, "total": t}
+        for c, t in top_categories_query
+    ]
+
+    return {
+        "income": total_income,
+        "expense": total_expense,
+        "balance": balance,
+        "top_categories": top_categories
+    }
 
 @router.get("/{transaction_id}",  response_model = TransactionResponse)
 async def read_transaction(transaction_id : int, db: Session = Depends(get_db)):
@@ -158,7 +186,6 @@ def delete_transaction(transaction_id : int , db: Session = Depends(get_db)):
          db.delete(transaction)
          db.commit()
          return {"eliminato" : True}
-
 
 @router.patch("/{transaction_id}", response_model=TransactionResponse)
 async def update_transaction(
@@ -184,6 +211,5 @@ async def update_transaction(
 
     return transaction
   
-
 
 

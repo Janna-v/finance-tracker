@@ -32,3 +32,8 @@ class SummaryTransaction(BaseModel):
 class CategoryTransaction(BaseModel):
     category : str
     total : float
+
+class MonthlyReportItem(BaseModel):
+    month : str
+    income : float
+    expense : float   
