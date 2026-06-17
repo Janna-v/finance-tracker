@@ -7,7 +7,6 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.transaction import Transaction
-from sqlalchemy import func
 from pydantic import BaseModel
 
 
@@ -197,7 +196,7 @@ def get_dashboard(db: Session = Depends(get_db)):
     }
 
 @router.get("/{transaction_id}",  response_model = TransactionResponse)
-async def read_transaction(transaction_id : int, db: Session = Depends(get_db)):
+def read_transaction(transaction_id : int, db: Session = Depends(get_db)):
         transaction =  db.get(Transaction, transaction_id)
         if transaction is None:
          raise HTTPException(status_code=404, detail="Transaction not found")
@@ -213,7 +212,7 @@ def delete_transaction(transaction_id : int , db: Session = Depends(get_db)):
          return {"eliminato" : True}
 
 @router.patch("/{transaction_id}", response_model=TransactionResponse)
-async def update_transaction(
+def update_transaction(
     transaction_id: int,
     update: TransactionUpdate,
     db: Session = Depends(get_db)
@@ -236,5 +235,3 @@ async def update_transaction(
 
     return transaction
   
-
-

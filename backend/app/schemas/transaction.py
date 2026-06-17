@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 from typing import Literal , Optional
-from datetime import date
+import datetime
 
 class TransactionCreate(BaseModel):
     type: Literal["income", "expense"]
     amount: float
     category: str
     description: str | None = None
-    date: date
+    date: datetime.date
 
 class TransactionResponse(BaseModel):
     id : int 
@@ -15,14 +15,14 @@ class TransactionResponse(BaseModel):
     amount: float
     category: str
     description: str | None = None
-    date: date
+    date: datetime.date
 
 class TransactionUpdate(BaseModel):
     type: Literal["income", "expense"] | None = None
     amount: float | None = None
     category: str | None = None
     description: str | None = None
-    date: Optional[date] = None
+    date: datetime.date | None = None
 
 class SummaryTransaction(BaseModel):
     total_income: float 
