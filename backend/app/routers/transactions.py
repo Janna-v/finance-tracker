@@ -12,26 +12,31 @@ router = APIRouter()
 
 @router.get("/", response_model=list[TransactionResponse])
 def get_transactions(
-    type: str  | None = None,
+    type: str | None = None,
     category: str | None = None,
-    date_from : date | None = None ,
-    date_to : date | None = None,
-    db:Session = Depends(get_db)
-    ):
+    date_from: date | None = None,
+    date_to: date | None = None,
+    limit: int = 5,
+    offset: int = 0,
+    db: Session = Depends(get_db)
+):
     query = db.query(Transaction)
-    if type  : 
-         query = query.filter(Transaction.type == type)
 
-    if category: 
-         query = query.filter(Transaction.category == category)     
+    if type is not None:
+        query = query.filter(Transaction.type == type)
 
-    if date_from : 
-         query = query.filter(Transaction.date >= date_from)
+    if category is not None:
+        query = query.filter(Transaction.category == category)
 
-    if date_to: 
-         query = query.filter(Transaction.date <= date_to)     
+    if date_from is not None:
+        query = query.filter(Transaction.date >= date_from)
 
-    return query.order_by(Transaction.date.desc()).all()
+    if date_to is not None:
+        query = query.filter(Transaction.date <= date_to)
+
+    query = query.order_by(Transaction.date.desc(), Transaction.id.desc())
+
+    return query.offset(offset).limit(limit).all()
   
 @router.get("/summary", response_model=SummaryTransaction)
 def summary_transactions(
