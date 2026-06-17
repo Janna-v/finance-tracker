@@ -8,9 +8,16 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.transaction import Transaction
 from sqlalchemy import func
+from pydantic import BaseModel
+
+
 router = APIRouter()
 
-@router.get("/", response_model=list[TransactionResponse])
+class TransactionsPage(BaseModel):
+    data: list[TransactionResponse]
+    totalPages: int
+
+@router.get("/", response_model=TransactionsPage)
 def get_transactions(
     type: str | None = None,
     category: str | None = None,
@@ -34,9 +41,22 @@ def get_transactions(
     if date_to is not None:
         query = query.filter(Transaction.date <= date_to)
 
-    query = query.order_by(Transaction.date.desc(), Transaction.id.desc())
+    total = query.count()
 
-    return query.offset(offset).limit(limit).all()
+    transactions = (
+        query
+        .order_by(Transaction.date.desc(), Transaction.id.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+    total_pages = (total + limit - 1) // limit
+
+    return {
+        "data": transactions,
+        "totalPages": total_pages
+    }
   
 @router.get("/summary", response_model=SummaryTransaction)
 def summary_transactions(

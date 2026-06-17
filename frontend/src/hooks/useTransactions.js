@@ -18,14 +18,21 @@ export function useTransactions() {
 
         const res = await getTransactions(limit, offset);
 
-        console.log("BACKEND RESPONSE:", res);
+        // 🔥 NORMALIZZAZIONE FINALE (CRUCIALE)
+        const data = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.data)
+          ? res.data
+          : [];
 
-        // Il tuo backend restituisce un array direttamente
-        setTransactions(Array.isArray(res) ? res : []);
+        setTransactions(data);
 
-        // Per ora il backend non restituisce totalPages
-        setTotalPages(1);
+        const tp =
+          res?.totalPages ??
+          res?.total_pages ??
+          (res?.data ? 1 : 1);
 
+        setTotalPages(tp);
       } catch (err) {
         console.error("FETCH ERROR:", err);
         setTransactions([]);

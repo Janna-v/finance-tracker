@@ -1,12 +1,20 @@
-export default function Pagination({ page, setPage, totalPages }) {
-  const safeTotal = Number.isFinite(totalPages) ? totalPages : 1;
+export default function Pagination({ page = 0, setPage, totalPages = 1 }) {
+  const safeTotal = Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1;
+
+  const currentPage = Number.isFinite(page) ? page : 0;
 
   const goPrev = () => {
-    setPage((p) => Math.max(0, p - 1));
+    setPage((prev) => {
+      const safePrev = Number.isFinite(prev) ? prev : 0;
+      return Math.max(0, safePrev - 1);
+    });
   };
 
   const goNext = () => {
-    setPage((p) => Math.min(safeTotal - 1, p + 1));
+    setPage((prev) => {
+      const safePrev = Number.isFinite(prev) ? prev : 0;
+      return Math.min(safeTotal - 1, safePrev + 1);
+    });
   };
 
   return (
@@ -14,7 +22,7 @@ export default function Pagination({ page, setPage, totalPages }) {
 
       <button
         onClick={goPrev}
-        disabled={page === 0}
+        disabled={currentPage <= 0}
         className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
       >
         Prev
@@ -25,7 +33,7 @@ export default function Pagination({ page, setPage, totalPages }) {
           key={i}
           onClick={() => setPage(i)}
           className={`px-3 py-1 rounded ${
-            page === i ? "bg-blue-600 text-white" : "bg-gray-200"
+            currentPage === i ? "bg-blue-600 text-white" : "bg-gray-200"
           }`}
         >
           {i + 1}
@@ -34,7 +42,7 @@ export default function Pagination({ page, setPage, totalPages }) {
 
       <button
         onClick={goNext}
-        disabled={page >= safeTotal - 1}
+        disabled={currentPage >= safeTotal - 1}
         className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
       >
         Next
