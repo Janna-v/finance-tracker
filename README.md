@@ -1,8 +1,6 @@
 # Finance Tracker
 
-Applicazione full stack per la gestione delle finanze personali, con API FastAPI e interfaccia React in **JavaScript**.
-
-**Progetto individuale.** Il repository documenta un'applicazione di esercitazione e il suo stato di sviluppo.
+Applicazione full stack per la gestione delle finanze personali, con API FastAPI e interfaccia React in **JavaScript**.**Progetto individuale di apprendimento.** Realizzato per consolidare Python e JavaScript attraverso un’applicazione completa di frontend, API REST e persistenza dei dati. Le funzionalità principali sono implementate; restano da completare l’allineamento dei test e alcune attività di manutenzione del repository, descritte nella sezione finale. È una demo formativa, con un ambito volutamente circoscritto, e non viene presentata come prodotto pronto per la produzione.
 
 ## Funzionalità implementate
 
